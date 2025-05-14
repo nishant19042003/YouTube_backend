@@ -22,6 +22,12 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 import userRouter from "./routes/user.router.js"
+app.get('/', (req, res) => {
+  // req = request object (input from client)
+  // res = response object (output to client)
+
+  res.send('Hello World');
+});
 app.use("/users",userRouter)
 app.use("/video",videoRouter)
 app.use("/tweet",tweetRouter)
