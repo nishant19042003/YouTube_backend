@@ -99,8 +99,9 @@ const loginUser=asyncHandler(async(req,res)=>{
     const {accessToken,refreshToken}=await generateAccessAndRefreshToken(user._id);
     const loggedinuser=await User.findById(user._id).select("-password -refreshtoken").lean();
     const options={
-        httpOnly:true,
-        secure:true,
+        httpOnly: true,
+        secure: true,         // ⚠️ needs HTTPS
+        sameSite: 'None'
     }
     return res.status(200)
     .cookie("accessToken",accessToken,options)
