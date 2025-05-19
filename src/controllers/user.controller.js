@@ -98,14 +98,15 @@ const loginUser=asyncHandler(async(req,res)=>{
 
     const {accessToken,refreshToken}=await generateAccessAndRefreshToken(user._id);
     const loggedinuser=await User.findById(user._id).select("-password -refreshtoken").lean();
-    const isProd = process.env.NODE_ENV === 'production';
+    const isLocalhost = req.get('origin')?.includes('localhost'); // or hardcode true
 
     const options = {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? 'None' : 'Lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    httpOnly: true,
+    secure: !isLocalhost, // ✅ only secure in production
+    sameSite: isLocalhost ? 'Lax' : 'None',
+    maxAge: 7 * 24 * 60 * 60 * 1000
     };
+
 
     return res.status(200)
     .cookie("accessToken",accessToken,options)
