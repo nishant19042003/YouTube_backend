@@ -103,7 +103,8 @@ const loginUser=asyncHandler(async(req,res)=>{
     const options = {
         httpOnly: true,
         secure: isProd,
-        sameSite: isProd ? 'None' : 'Lax'
+        sameSite: isProd ? 'None' : 'Lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     };
 
     return res.status(200)
