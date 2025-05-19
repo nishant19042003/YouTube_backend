@@ -25,6 +25,8 @@ import userRouter from "./routes/user.router.js"
 app.get('/', (req, res) => {
   // req = request object (input from client)
   // res = response object (output to client)
+  
+  console.log(process.env.NODE_ENV)
 
   res.send('Hello World');
 });
