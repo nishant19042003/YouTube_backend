@@ -98,11 +98,14 @@ const loginUser=asyncHandler(async(req,res)=>{
 
     const {accessToken,refreshToken}=await generateAccessAndRefreshToken(user._id);
     const loggedinuser=await User.findById(user._id).select("-password -refreshtoken").lean();
-    const options={
+    const isProd = process.env.NODE_ENV === 'production';
+
+    const options = {
         httpOnly: true,
-        secure: true,         // ⚠️ needs HTTPS
-        sameSite: 'None'
-    }
+        secure: isProd,
+        sameSite: isProd ? 'None' : 'Lax'
+    };
+
     return res.status(200)
     .cookie("accessToken",accessToken,options)
     .cookie("refreshToken",refreshToken,options)
