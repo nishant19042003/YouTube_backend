@@ -40,12 +40,16 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     const {channelId} = req.params
     //get all the subcription cards with the this channelid.
-    const subscribers=await Subscription.find({channel:channelId});
+    const subscribers=await Subscription.find({"channel":channelId});
+    const subscribebyme=await Subscription.find({"channel":channelId,"subscriber":req?.user._id});
     if(!subscribers){
         throw new ApiError(400,"error while fatching subscriber")
     }
+    if(!subscribebyme){
+        throw new ApiError(400,"error while fatching subscribebyme")
+    }
     return res.status(200).json(
-        new ApiResponse(200,{subscribers},"this are the subscribers")
+        new ApiResponse(200,{subscribebyme,subscribers},"this are the subscribers")
     )
 })
 

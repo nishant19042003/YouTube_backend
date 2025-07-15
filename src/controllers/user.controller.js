@@ -98,12 +98,12 @@ const loginUser=asyncHandler(async(req,res)=>{
 
     const {accessToken,refreshToken}=await generateAccessAndRefreshToken(user._id);
     const loggedinuser=await User.findById(user._id).select("-password -refreshtoken").lean();
-    const isLocalhost = req.get('origin')?.includes('localhost'); // or hardcode true
+    //const isLocalhost = req.get('origin')?.includes('localhost'); // or hardcode true
 
     const options = {
     httpOnly: true,
-    secure: !isLocalhost, // ✅ only secure in production
-    sameSite: isLocalhost ? 'Lax' : 'None',
+    secure: true, // ✅ only secure in production
+    sameSite:   'None', // ✅ for cross-site cookies
     maxAge: 7 * 24 * 60 * 60 * 1000
     };
 
@@ -187,11 +187,8 @@ const changepassword=asyncHandler(async(req,res)=>{
 });
 
 const getcurrentuser=asyncHandler(async(req,res)=>{
-    const user=await User.findById(req?.user?._id);
-    if(!user){
-        throw new ApiError(400,"currently not any user is loggedin");
-    }
-    return res.staus(200).json(new ApiResponse(200,user,"this is the user"))
+    
+    return res.status(200).json(new ApiResponse(200,req.user||"","this is the user"))
 })
 
 const updateavatar=asyncHandler(async(req,res)=>{
@@ -366,6 +363,17 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
         new ApiResponse(200, channel[0], "User channel fetched successfully")
     )
 })
+const getUserProfile = asyncHandler(async(req, res) => {
+    const {userid}=req.params;
+    const user=await User.findById(userid);
+    if(!user){
+        throw new ApiError(400,"user not found")
+    }
+    return res.status(200).json(
+        new ApiResponse(200, user, "User profile fetched successfully")
+    )
+});
+
 
 export {
     registerUser
@@ -377,5 +385,6 @@ export {
     updateavatar,
     updatecoverimage,
     getWatchhistory,
-    getUserChannelProfile
+    getUserChannelProfile,
+    getUserProfile
 }

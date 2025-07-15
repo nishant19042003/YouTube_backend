@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { Comment } from "../models/comment.module.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { ObjectId } from "mongodb"
 const getVideoComments = asyncHandler(async (req, res) => {
     //TODO: get all comments for a video
     const {videoId} = req.params
@@ -12,7 +13,20 @@ const getVideoComments = asyncHandler(async (req, res) => {
         throw new ApiError(400, "videoId is required");
     }
 
-    const comments = await Comment.find({ video: videoId })
+    const comments = await Comment.aggregate([
+  {
+    '$match': {
+      'video': new ObjectId(videoId)
+    }
+  }, {
+    '$lookup': {
+      'from': 'users', 
+      'localField': 'owner', 
+      'foreignField': '_id', 
+      'as': 'owner'
+    }
+  }
+]);
     
     
     if(!comments){
@@ -80,15 +94,15 @@ const deleteComment = asyncHandler(async (req, res) => {
     if(!userid){
         throw new ApiError(400,"please login")
     }
-    const commnetId=req.params;
-    const comment =await Comment.findById(commnetId);
+    const {commentId}=req.params;
+    const comment =await Comment.findById(commentId);
     if(!comment){
         throw new ApiError(500,"we got error while finding comment")
     }
-    if (comment.toString() !== req.user._id.toString()) {
+    if (comment.owner.toString() !== req.user._id.toString()) {
         throw new ApiError(403, "You are not allowed to update this comment");
     }
-    await Comment.findByIdAndDelete(commnetId);
+    await Comment.findByIdAndDelete(commentId);
     return res.status(200).json(
         new ApiResponse(200,{},"comment deleted succesfully")
        )

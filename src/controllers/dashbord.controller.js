@@ -9,10 +9,14 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 import { Subscription } from "../models/subscription.module.js"
 const getChannelStats = asyncHandler(async (req, res) => {
     // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
-    const TotalView = await Video.aggregate([
+    const { channelid } = req.params;
+    if (!channelid) {
+        throw new ApiError(400, "Channel ID is required");
+    }
+    const totalView = await Video.aggregate([
         {
             $match: {
-                owner: new mongoose.Types.ObjectId(req.user._id)
+                owner: new mongoose.Types.ObjectId(channelid)
             }
         },
         {
@@ -25,10 +29,10 @@ const getChannelStats = asyncHandler(async (req, res) => {
         }
         
     ])
-    const TotalVideoLike = await Video.aggregate([
+    const totalVideoLike = await Video.aggregate([
         {
             $match: {
-                owner: new mongoose.Types.ObjectId(req.user._id)
+                owner: new mongoose.Types.ObjectId(channelid)
             }
         },
         {
@@ -55,31 +59,32 @@ const getChannelStats = asyncHandler(async (req, res) => {
     const totalsubscriber=await Subscription.aggregate([
         {
             $match: {
-                channel: new mongoose.Types.ObjectId(req.user._id)
+                channel: new mongoose.Types.ObjectId(channelid)
             }
         },
         {
-            $count: "matchedCount"
+            $count: "subscriberCount"
           }
         
     ])
     const totalvideo=await Video.aggregate([
         {
             $match: {
-                owner: new mongoose.Types.ObjectId(req.user._id)
+                owner: new mongoose.Types.ObjectId(channelid)
             }
         },
         {
-            $count: "matchedCount"
+            $count: "videoCount"
           }
         
     ])
+    
     return res
     .status(200)
     .json(
         new ApiResponse(
             200,
-            totalvideo,
+            {totalVideoLike, totalView, totalsubscriber, totalvideo},
             "TotalView fetched successfully"
         )
     )
@@ -87,6 +92,19 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
 const getChannelVideos = asyncHandler(async (req, res) => {
     // TODO: Get all the videos uploaded by the channel
+    const { channelid } = req.params;
+    const videos = await Video.find({ owner: channelid });
+    console.log("bhej raha hoon")
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                videos,
+                "Videos fetched successfully"
+            )
+        );
+        
 })
 
 export {

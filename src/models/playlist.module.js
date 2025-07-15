@@ -19,6 +19,10 @@ const playlistSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User"
     },
+    thumbnail:{
+        type:String,
+        required:true
+    }
 }, {timestamps: true})
 
 

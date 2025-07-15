@@ -8,16 +8,28 @@ import subcriptionrouter from "./routes/subscription.router.js"
 import commentrouter from "./routes/comment.router.js"
 import likerouter from "./routes/like.router.js"
 import dashbordrouter from "./routes/dashbord.router.js"
+import playlistrouter from './routes/playlist.router.js';
 const app=express();
+const allowedOrigins = [
+  "https://onenishant.in.net",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost:8000",
+];
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
-    credentials: true
-}))
-app.use(express.json({limit:"16kb"}));
-app.use(urlencoded({
-    extended:true,
-    limit:"16kb"
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
 }));
+
+app.use(express.json({ limit: "16kb" }));
+app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
@@ -37,4 +49,5 @@ app.use("/subscription",subcriptionrouter)
 app.use("/comment",commentrouter)
 app.use("/like",likerouter)
 app.use("/dashbord",dashbordrouter)
+app.use("/playlist",playlistrouter)
 export {app}

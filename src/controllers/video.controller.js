@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { UploadOnCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.module.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-
+import { ObjectId } from "mongodb";
 const uploadvideo=asyncHandler(async(req,res)=>{
 
     //step-1  taking video and thumbnail file.
@@ -48,7 +48,16 @@ const uploadvideo=asyncHandler(async(req,res)=>{
 
 })
 const getallvideos=asyncHandler(async(req,res)=>{
-    const videos = await Video.find().sort({ createdAt: -1 });
+    const videos = await Video.aggregate([
+  {
+    '$lookup': {
+      'from': 'users', 
+      'localField': 'owner', 
+      'foreignField': '_id', 
+      'as': 'owner'
+    }
+  }
+]);
     if(!videos){
         throw new ApiError(400,"we get error while featching all videos")
     }
@@ -58,7 +67,33 @@ const getallvideos=asyncHandler(async(req,res)=>{
 })
 const getvideobyid=asyncHandler(async(req,res)=>{
     const { videoId } = req.params;
-    const video = await Video.findById(videoId);
+    const video = await Video.aggregate([
+    {
+        '$match': {
+        '_id': new ObjectId(videoId)
+        }
+    },
+    {
+        '$lookup': {
+        'from': 'users', 
+        'localField': 'owner', 
+        'foreignField': '_id', 
+        'as': 'owner'
+        }
+        
+        
+    },
+
+    {
+        '$unwind': {
+        'path': '$owner', 
+        'preserveNullAndEmptyArrays': true
+        }
+    }
+    ,
+    
+    ])
+   //const video = await Video.findById(videoId);
     if(!video){
         throw new ApiError(400,"we are getting error while fatching  video by id")
     }
@@ -113,6 +148,7 @@ const updatevideo=asyncHandler(async(req,res)=>{
         new ApiResponse(200, updatedVideo, "Video updated successfully")
     );
 })
+
 export {
     uploadvideo,
     getallvideos,
